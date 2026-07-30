@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, type ChangeEvent } from "react";
 import { Input, Label, Select, SubmitButton, Textarea } from "@/components/ui/form";
 import {
   AMENITIES,
@@ -7,6 +10,7 @@ import {
   PROPERTY_TYPES,
   STATUS_LABELS,
 } from "@/lib/constants";
+import { instagramPermalink } from "@/lib/instagram";
 import type { getPropertyById } from "@/server/queries/admin";
 import type { Locality } from "@/server/queries/localities";
 
@@ -23,6 +27,14 @@ export function PropertyForm({
   localities: Locality[];
   property?: PropertyWithImages;
 }) {
+  const [selectedPreviews, setSelectedPreviews] = useState<string[]>([]);
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const urls = files.map((file) => URL.createObjectURL(file));
+    setSelectedPreviews(urls);
+  };
+
   return (
     <form
       action={action}
@@ -157,7 +169,7 @@ export function PropertyForm({
                 name="amenities"
                 value={amenity}
                 defaultChecked={property?.amenities.includes(amenity)}
-                className="h-4 w-4 rounded border-zinc-300 accent-emerald-600"
+                className="h-4 w-4 rounded border-zinc-300 accent-brand-600"
               />
               {amenity}
             </label>
@@ -177,7 +189,56 @@ export function PropertyForm({
       </div>
 
       <div>
-        <Label htmlFor="imageUrls">Image URLs (one per line)</Label>
+        <Label htmlFor="instagramUrl">Instagram reel link (optional)</Label>
+        <Input
+          id="instagramUrl"
+          name="instagramUrl"
+          defaultValue={
+            property?.instagramShortcode
+              ? instagramPermalink(property.instagramShortcode)
+              : ""
+          }
+          placeholder="https://www.instagram.com/reel/ABC123/"
+          pattern="\s*|.*instagram\.com/(?:reels?|p|tv)/[A-Za-z0-9_-]{5,30}.*"
+          title="Paste a full Instagram reel URL, e.g. https://www.instagram.com/reel/ABC123/"
+        />
+        <p className="mt-1 text-xs text-zinc-500">
+          Plays inside the property page. Paste the full reel URL — share links
+          (instagram.com/share/…) won&apos;t work.
+        </p>
+      </div>
+
+      <div className="space-y-2 rounded-lg border border-dashed border-zinc-300 p-4 bg-zinc-50/50">
+        <Label htmlFor="imageFiles">Upload Image Files (from computer/phone)</Label>
+        <Input
+          id="imageFiles"
+          name="imageFiles"
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleFileChange}
+          className="cursor-pointer file:mr-4 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-1 file:text-sm file:font-semibold file:text-white hover:file:bg-brand-700"
+        />
+        {selectedPreviews.length > 0 && (
+          <div className="flex flex-wrap gap-2 pt-2">
+            {selectedPreviews.map((src, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={i}
+                src={src}
+                alt={`Preview ${i + 1}`}
+                className="h-20 w-20 rounded-lg object-cover border border-zinc-300 shadow-xs"
+              />
+            ))}
+          </div>
+        )}
+        <p className="text-xs text-zinc-500">
+          Files will be uploaded directly to Cloudinary and stored as property images.
+        </p>
+      </div>
+
+      <div>
+        <Label htmlFor="imageUrls">Or paste Image URLs (one per line, optional)</Label>
         <Textarea
           id="imageUrls"
           name="imageUrls"
@@ -220,7 +281,13 @@ export function PropertyForm({
         </div>
       </div>
 
-      <SubmitButton>
+      <SubmitButton
+        pendingText={
+          property
+            ? "Saving changes…"
+            : "Uploading images & creating property…"
+        }
+      >
         {property ? "Save changes" : "Create property"}
       </SubmitButton>
     </form>

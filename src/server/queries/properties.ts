@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { properties } from "@/db/schema";
 import type { PropertyType } from "@/lib/constants";
@@ -43,6 +43,21 @@ export async function getPropertyBySlug(slug: string) {
       images: { orderBy: (images, { asc }) => asc(images.sortOrder) },
     },
   });
+}
+
+/** Count of publicly visible properties per type, for the homepage stats. */
+export async function getPropertyCountsByType(): Promise<
+  Record<PropertyType, number>
+> {
+  const rows = await db
+    .select({ type: properties.type, total: count() })
+    .from(properties)
+    .where(eq(properties.status, "available"))
+    .groupBy(properties.type);
+
+  const counts = { pg: 0, rent: 0, homestay: 0 };
+  for (const row of rows) counts[row.type] = Number(row.total);
+  return counts;
 }
 
 export type PropertyCard = Awaited<

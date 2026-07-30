@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { EnquiryForm } from "@/components/property/enquiry-form";
+import { PropertyGallery } from "@/components/property/property-gallery";
 import { Badge } from "@/components/ui/badge";
 import { siteConfig } from "@/config/site";
 import {
@@ -49,7 +49,6 @@ export default async function PropertyPage({
   if (!property) notFound();
 
   const code = propertyCode(property.id);
-  const [cover, ...rest] = property.images;
 
   const facts: [string, string][] = [
     ["Type", PROPERTY_TYPE_CONFIG[property.type].label],
@@ -69,40 +68,11 @@ export default async function PropertyPage({
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       {/* Gallery */}
-      <div className="grid gap-3 lg:grid-cols-3">
-        <div className="relative aspect-[3/2] overflow-hidden rounded-2xl bg-zinc-100 lg:col-span-2">
-          {cover ? (
-            <Image
-              src={cover.url}
-              alt={property.title}
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 66vw"
-              className="object-cover"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-zinc-400">
-              No photo yet
-            </div>
-          )}
-        </div>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
-          {rest.slice(0, 2).map((image) => (
-            <div
-              key={image.id}
-              className="relative aspect-[3/2] overflow-hidden rounded-2xl bg-zinc-100"
-            >
-              <Image
-                src={image.url}
-                alt={property.title}
-                fill
-                sizes="(max-width: 1024px) 50vw, 33vw"
-                className="object-cover"
-              />
-            </div>
-          ))}
-        </div>
-      </div>
+      <PropertyGallery
+        images={property.images}
+        title={property.title}
+        instagramShortcode={property.instagramShortcode}
+      />
 
       <div className="mt-8 grid gap-10 lg:grid-cols-3">
         {/* Main info */}
@@ -157,7 +127,7 @@ export default async function PropertyPage({
 
         {/* Enquiry panel */}
         <aside className="h-fit rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm lg:sticky lg:top-24">
-          <p className="text-2xl font-bold text-emerald-700">
+          <p className="text-2xl font-bold text-brand-700">
             {formatPrice(property.price, property.priceUnit)}
           </p>
           {siteConfig.whatsappNumber && (
@@ -169,7 +139,7 @@ export default async function PropertyPage({
               )}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-4 flex w-full items-center justify-center rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700"
+              className="mt-4 flex w-full items-center justify-center rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700"
             >
               Enquire on WhatsApp
             </a>

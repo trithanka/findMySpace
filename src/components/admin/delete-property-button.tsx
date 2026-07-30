@@ -16,7 +16,7 @@ export function DeletePropertyButton({ propertyId }: { propertyId: number }) {
         }
         startTransition(() => deleteProperty(propertyId));
       }}
-      className="text-xs font-medium text-red-600 hover:underline disabled:opacity-50"
+      className="inline-flex min-h-9 items-center rounded-lg px-2 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
     >
       {pending ? "Deleting…" : "Delete"}
     </button>

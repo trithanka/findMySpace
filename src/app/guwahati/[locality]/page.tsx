@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { PropertyGrid } from "@/components/property/property-grid";
+import { ListingsSkeleton } from "@/components/ui/page-skeletons";
 import { siteConfig } from "@/config/site";
 import { getLocalityBySlug } from "@/server/queries/localities";
 import { getPublicProperties } from "@/server/queries/properties";
@@ -32,20 +34,28 @@ export default async function LocalityPage({
   const locality = await getLocalityBySlug(localitySlug);
   if (!locality) notFound();
 
-  const properties = await getPublicProperties({ localityId: locality.id });
+  return (
+    <Suspense fallback={<ListingsSkeleton />}>
+      <LocalityListings id={locality.id} name={locality.name} />
+    </Suspense>
+  );
+}
+
+async function LocalityListings({ id, name }: { id: number; name: string }) {
+  const properties = await getPublicProperties({ localityId: id });
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="text-3xl font-bold tracking-tight text-zinc-900">
-        Properties in {locality.name}
+        Properties in {name}
       </h1>
       <p className="mb-6 mt-1 text-zinc-500">
         {properties.length} listing{properties.length === 1 ? "" : "s"} in{" "}
-        {locality.name}, {siteConfig.city}
+        {name}, {siteConfig.city}
       </p>
       <PropertyGrid
         properties={properties}
-        emptyMessage={`Nothing listed in ${locality.name} yet — check back soon.`}
+        emptyMessage={`Nothing listed in ${name} yet — check back soon.`}
       />
     </div>
   );

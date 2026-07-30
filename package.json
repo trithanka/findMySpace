@@ -15,7 +15,9 @@
     "check": "tsc --noEmit && eslint ."
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
     "better-auth": "^1.6.25",
+    "cloudinary": "^2.10.0",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "next": "16.2.12",

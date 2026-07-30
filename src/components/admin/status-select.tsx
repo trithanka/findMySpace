@@ -23,7 +23,7 @@ export function StatusSelect({
         const next = event.target.value as Status;
         startTransition(() => setPropertyStatus(propertyId, next));
       }}
-      className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-xs font-medium text-zinc-700 disabled:opacity-50"
+      className="min-h-9 rounded-lg border border-zinc-300 bg-white px-2 text-xs font-medium text-zinc-700 disabled:opacity-50"
     >
       {Object.entries(STATUS_LABELS).map(([value, label]) => (
         <option key={value} value={value}>

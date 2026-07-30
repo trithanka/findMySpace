@@ -10,14 +10,15 @@ import {
 const initialState: EnquiryFormState = { status: "idle", message: "" };
 
 export function EnquiryForm({ propertyId }: { propertyId: number }) {
-  const [state, formAction, pending] = useActionState(
+  const [state, formAction] = useActionState(
     createEnquiry,
     initialState,
   );
 
   if (state.status === "success") {
+    // Success stays green — a red confirmation reads as an error.
     return (
-      <div className="rounded-xl bg-emerald-50 p-4 text-sm font-medium text-emerald-800">
+      <div className="rounded-xl bg-green-50 p-4 text-sm font-medium text-green-800">
         {state.message}
       </div>
     );
@@ -41,19 +42,29 @@ export function EnquiryForm({ propertyId }: { propertyId: number }) {
         />
       </div>
       <div>
+        <Label htmlFor="enquiry-move-in">When do you want to stay from?</Label>
+        <Input
+          id="enquiry-move-in"
+          name="moveInDate"
+          type="date"
+          required
+          min={new Date().toISOString().split("T")[0]}
+        />
+      </div>
+      <div>
         <Label htmlFor="enquiry-message">Message (optional)</Label>
         <Textarea
           id="enquiry-message"
           name="message"
           rows={3}
-          placeholder="When do you want to move in?"
+          placeholder="Any special requirements or questions..."
         />
       </div>
       {state.status === "error" && (
         <p className="text-sm text-red-600">{state.message}</p>
       )}
-      <SubmitButton disabled={pending} className="w-full">
-        {pending ? "Sending…" : "Request a callback"}
+      <SubmitButton pendingText="Sending…" className="w-full">
+        Request a callback
       </SubmitButton>
     </form>
   );

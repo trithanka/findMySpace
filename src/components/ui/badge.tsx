@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 
 const variants = {
   default: "bg-zinc-100 text-zinc-700",
-  accent: "bg-emerald-600 text-white",
+  accent: "bg-brand-600 text-white",
   outline: "border border-zinc-300 text-zinc-600",
   warning: "bg-amber-100 text-amber-800",
   danger: "bg-red-100 text-red-700",

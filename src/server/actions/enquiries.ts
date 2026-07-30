@@ -15,6 +15,7 @@ export async function createEnquiry(
   const propertyId = Number.parseInt(String(formData.get("propertyId")), 10);
   const name = String(formData.get("name") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
+  const moveInDate = String(formData.get("moveInDate") ?? "").trim();
   const message = String(formData.get("message") ?? "").trim();
 
   if (Number.isNaN(propertyId) || !name || !phone) {
@@ -28,6 +29,7 @@ export async function createEnquiry(
     propertyId,
     name,
     phone,
+    moveInDate: moveInDate || null,
     message: message || null,
   });
 

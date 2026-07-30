@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { LocalityFilter } from "@/components/property/locality-filter";
 import { PropertyGrid } from "@/components/property/property-grid";
+import { ListingsSkeleton } from "@/components/ui/page-skeletons";
 import { siteConfig } from "@/config/site";
-import { CATEGORY_TO_TYPE, PROPERTY_TYPE_CONFIG } from "@/lib/constants";
 import {
-  getLocalities,
-  getLocalityBySlug,
-} from "@/server/queries/localities";
+  CATEGORY_TO_TYPE,
+  PROPERTY_TYPE_CONFIG,
+  type PropertyType,
+} from "@/lib/constants";
+import { getLocalities, getLocalityBySlug } from "@/server/queries/localities";
 import { getPublicProperties } from "@/server/queries/properties";
 
 export const dynamic = "force-dynamic";
@@ -40,11 +43,38 @@ export default async function CategoryLocalityPage({
   const type = CATEGORY_TO_TYPE[category];
   if (!type) notFound();
 
+  // Both checks resolve before anything streams, so bad slugs return a real 404.
   const locality = await getLocalityBySlug(localitySlug);
   if (!locality) notFound();
 
+  return (
+    <Suspense fallback={<ListingsSkeleton withFilter />}>
+      <LocalityListings
+        category={category}
+        type={type}
+        localityId={locality.id}
+        localityName={locality.name}
+        localitySlug={localitySlug}
+      />
+    </Suspense>
+  );
+}
+
+async function LocalityListings({
+  category,
+  type,
+  localityId,
+  localityName,
+  localitySlug,
+}: {
+  category: string;
+  type: PropertyType;
+  localityId: number;
+  localityName: string;
+  localitySlug: string;
+}) {
   const [properties, localities] = await Promise.all([
-    getPublicProperties({ type, localityId: locality.id }),
+    getPublicProperties({ type, localityId }),
     getLocalities(),
   ]);
   const config = PROPERTY_TYPE_CONFIG[type];
@@ -54,11 +84,11 @@ export default async function CategoryLocalityPage({
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900">
-            {config.plural} in {locality.name}
+            {config.plural} in {localityName}
           </h1>
           <p className="mt-1 text-zinc-500">
             {properties.length} listing{properties.length === 1 ? "" : "s"} in{" "}
-            {locality.name}, {siteConfig.city}
+            {localityName}, {siteConfig.city}
           </p>
         </div>
         <LocalityFilter
@@ -69,7 +99,7 @@ export default async function CategoryLocalityPage({
       </div>
       <PropertyGrid
         properties={properties}
-        emptyMessage={`No ${config.plural.toLowerCase()} in ${locality.name} yet — try another locality.`}
+        emptyMessage={`No ${config.plural.toLowerCase()} in ${localityName} yet — try another locality.`}
       />
     </div>
   );

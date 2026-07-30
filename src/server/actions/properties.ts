@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { properties, propertyImages } from "@/db/schema";
 import { PROPERTY_TYPES, type PropertyType } from "@/lib/constants";
+import { parseInstagramShortcode } from "@/lib/instagram";
 import { slugify } from "@/lib/utils";
 import { requireAdmin } from "@/server/auth-guard";
 
@@ -49,17 +50,34 @@ function parsePropertyForm(formData: FormData) {
     genderPreference: genderPreference as "any" | "male" | "female",
     amenities: formData.getAll("amenities").map(String),
     description,
+    instagramShortcode: parseInstagramShortcode(
+      String(formData.get("instagramUrl") ?? ""),
+    ),
     ownerName: String(formData.get("ownerName") ?? "").trim() || null,
     ownerPhone: String(formData.get("ownerPhone") ?? "").trim() || null,
     status: status as "available" | "occupied" | "hidden",
   };
 }
 
-function parseImageUrls(formData: FormData): string[] {
-  return String(formData.get("imageUrls") ?? "")
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
+
+async function processPropertyImages(formData: FormData): Promise<string[]> {
+  const textUrls = String(formData.get("imageUrls") ?? "")
     .split("\n")
     .map((url) => url.trim())
     .filter((url) => url.startsWith("http"));
+
+  const files = formData
+    .getAll("imageFiles")
+    .filter((item): item is File => item instanceof File && item.size > 0);
+
+  const uploadedUrls: string[] = [];
+  for (const file of files) {
+    const url = await uploadImageToCloudinary(file);
+    uploadedUrls.push(url);
+  }
+
+  return [...uploadedUrls, ...textUrls];
 }
 
 async function replaceImages(propertyId: number, urls: string[]) {
@@ -87,9 +105,10 @@ export async function createProperty(formData: FormData) {
     .values({ ...values, slug })
     .returning({ id: properties.id });
 
-  await replaceImages(created.id, parseImageUrls(formData));
+  const imageUrls = await processPropertyImages(formData);
+  await replaceImages(created.id, imageUrls);
   revalidatePublicPages();
-  redirect("/admin");
+  redirect("/admin/properties");
 }
 
 export async function updateProperty(id: number, formData: FormData) {
@@ -101,9 +120,10 @@ export async function updateProperty(id: number, formData: FormData) {
     .set({ ...values, updatedAt: new Date() })
     .where(eq(properties.id, id));
 
-  await replaceImages(id, parseImageUrls(formData));
+  const imageUrls = await processPropertyImages(formData);
+  await replaceImages(id, imageUrls);
   revalidatePublicPages();
-  redirect("/admin");
+  redirect("/admin/properties");
 }
 
 export async function setPropertyStatus(

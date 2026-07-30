@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { LocalityFilter } from "@/components/property/locality-filter";
 import { PropertyGrid } from "@/components/property/property-grid";
+import { ListingsSkeleton } from "@/components/ui/page-skeletons";
 import { siteConfig } from "@/config/site";
-import { CATEGORY_TO_TYPE, PROPERTY_TYPE_CONFIG } from "@/lib/constants";
+import {
+  CATEGORY_TO_TYPE,
+  PROPERTY_TYPE_CONFIG,
+  type PropertyType,
+} from "@/lib/constants";
 import { getLocalities } from "@/server/queries/localities";
 import { getPublicProperties } from "@/server/queries/properties";
 
@@ -33,8 +39,23 @@ export default async function CategoryPage({
 }) {
   const { category } = await params;
   const type = CATEGORY_TO_TYPE[category];
+  // Resolved before any markup is streamed, so unknown slugs get a real 404.
   if (!type) notFound();
 
+  return (
+    <Suspense fallback={<ListingsSkeleton withFilter />}>
+      <CategoryContent category={category} type={type} />
+    </Suspense>
+  );
+}
+
+async function CategoryContent({
+  category,
+  type,
+}: {
+  category: string;
+  type: PropertyType;
+}) {
   const [properties, localities] = await Promise.all([
     getPublicProperties({ type }),
     getLocalities(),

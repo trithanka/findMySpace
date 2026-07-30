@@ -53,6 +53,8 @@ export const properties = pgTable("properties", {
   genderPreference: genderPreference("gender_preference").default("any"),
   amenities: text("amenities").array().notNull().default([]),
   description: text("description").notNull(),
+  // Instagram reel/post shortcode (not the full URL) — embedded on the detail page.
+  instagramShortcode: text("instagram_shortcode"),
   // Owner contact — never rendered on public pages, admin only.
   ownerName: text("owner_name"),
   ownerPhone: text("owner_phone"),
@@ -77,6 +79,7 @@ export const enquiries = pgTable("enquiries", {
     .references(() => properties.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   phone: text("phone").notNull(),
+  moveInDate: text("move_in_date"),
   message: text("message"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

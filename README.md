@@ -80,6 +80,10 @@ Conventions:
 - Property display codes (`FMS-1024`) are derived from the row id
   (`propertyCode()` in `src/lib/utils.ts`), not stored.
 - Owner name/phone are private columns — never render them on public pages.
+- Instagram reels are stored as a bare **shortcode** (`instagram_shortcode`), never
+  a pasted URL — `src/lib/instagram.ts` extracts it from whatever the admin pastes
+  and builds the embed `src`, so no raw input reaches the iframe. The detail page
+  plays it in an in-page modal (`components/property/reel-modal.tsx`).
 - New localities/property types: `src/db/seed.ts` and `src/lib/constants.ts`.
 
 ## Deploying

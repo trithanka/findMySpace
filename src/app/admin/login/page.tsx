@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Input, Label, SubmitButton } from "@/components/ui/form";
+import { siteConfig } from "@/config/site";
 import { authClient } from "@/lib/auth-client";
 
 export default function AdminLoginPage() {
@@ -32,6 +34,14 @@ export default function AdminLoginPage() {
 
   return (
     <div className="mx-auto flex max-w-sm flex-col justify-center px-4 py-24">
+      <Image
+        src="/logo-full.png"
+        alt={siteConfig.name}
+        width={1200}
+        height={803}
+        className="mb-8 h-20 w-auto"
+        priority
+      />
       <h1 className="text-2xl font-bold text-zinc-900">Admin sign in</h1>
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div>
