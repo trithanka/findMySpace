@@ -28,16 +28,81 @@ export function PropertyForm({
   property?: PropertyWithImages;
 }) {
   const [selectedPreviews, setSelectedPreviews] = useState<string[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState("");
+  const [error, setError] = useState("");
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const urls = files.map((file) => URL.createObjectURL(file));
-    setSelectedPreviews(urls);
+    setSelectedFiles(files);
+    setSelectedPreviews(files.map((file) => URL.createObjectURL(file)));
   };
+
+  /**
+   * Photos go browser → Cloudinary directly. Sending them through the server
+   * action instead would put the raw bytes in the POST body, which Vercel
+   * rejects with 413 once they pass ~4.5MB.
+   */
+  async function uploadToCloudinary(file: File): Promise<string> {
+    const signRes = await fetch("/api/cloudinary/sign", { method: "POST" });
+    if (!signRes.ok) {
+      throw new Error("Could not authorise the upload. Are you still signed in?");
+    }
+    const { cloudName, apiKey, timestamp, folder, signature } =
+      await signRes.json();
+
+    const body = new FormData();
+    body.append("file", file);
+    body.append("api_key", apiKey);
+    body.append("timestamp", String(timestamp));
+    body.append("folder", folder);
+    body.append("signature", signature);
+
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      { method: "POST", body },
+    );
+    if (!res.ok) {
+      throw new Error(`${file.name} failed to upload (${res.status})`);
+    }
+    return (await res.json()).secure_url as string;
+  }
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+    setBusy(true);
+
+    const formData = new FormData(event.currentTarget);
+
+    try {
+      const uploaded: string[] = [];
+      for (const [index, file] of selectedFiles.entries()) {
+        setProgress(`Uploading photo ${index + 1} of ${selectedFiles.length}…`);
+        uploaded.push(await uploadToCloudinary(file));
+      }
+
+      if (uploaded.length > 0) {
+        const pasted = String(formData.get("imageUrls") ?? "").trim();
+        formData.set(
+          "imageUrls",
+          [pasted, ...uploaded].filter(Boolean).join("\n"),
+        );
+      }
+
+      setProgress("Saving property…");
+      await action(formData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setBusy(false);
+      setProgress("");
+    }
+  }
 
   return (
     <form
-      action={action}
+      onSubmit={handleSubmit}
       className="max-w-3xl space-y-5 rounded-xl border border-zinc-200 bg-white p-6"
     >
       <div>
@@ -210,9 +275,10 @@ export function PropertyForm({
 
       <div className="space-y-2 rounded-lg border border-dashed border-zinc-300 p-4 bg-zinc-50/50">
         <Label htmlFor="imageFiles">Upload Image Files (from computer/phone)</Label>
+        {/* Deliberately has no `name`: the files are uploaded by JS above, so
+            they must not be serialised into the server action's POST body. */}
         <Input
           id="imageFiles"
-          name="imageFiles"
           type="file"
           accept="image/*"
           multiple
@@ -233,7 +299,8 @@ export function PropertyForm({
           </div>
         )}
         <p className="text-xs text-zinc-500">
-          Files will be uploaded directly to Cloudinary and stored as property images.
+          Uploaded straight to Cloudinary from your browser, so large phone
+          photos are fine.
         </p>
       </div>
 
@@ -281,14 +348,18 @@ export function PropertyForm({
         </div>
       </div>
 
-      <SubmitButton
-        pendingText={
-          property
-            ? "Saving changes…"
-            : "Uploading images & creating property…"
-        }
-      >
-        {property ? "Save changes" : "Create property"}
+      {error && (
+        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+          {error}
+        </p>
+      )}
+
+      <SubmitButton disabled={busy}>
+        {busy
+          ? progress || "Working…"
+          : property
+            ? "Save changes"
+            : "Create property"}
       </SubmitButton>
     </form>
   );
