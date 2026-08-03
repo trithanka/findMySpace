@@ -29,7 +29,7 @@ export async function generateMetadata({
     description: `${PROPERTY_TYPE_CONFIG[property.type].label} in ${property.locality.name}, ${siteConfig.city} at ${formatPrice(property.price, property.priceUnit)}. ${property.description.slice(0, 140)}`,
   };
 }
-
+//
 function Fact({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl bg-zinc-50 p-3">
