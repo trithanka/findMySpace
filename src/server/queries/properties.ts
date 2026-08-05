@@ -77,3 +77,19 @@ export type PropertyCard = Awaited<
 export type PropertyDetail = NonNullable<
   Awaited<ReturnType<typeof getPropertyBySlug>>
 >;
+
+/**
+ * Whether a property is one the public can actually enquire about.
+ *
+ * The enquiry form carries its property id in a hidden field, so the id is user
+ * input like any other. Without this check an enquiry can be lodged against a
+ * host's unpublished draft — or against an id that does not exist, which fails
+ * on the foreign key rather than as a handled error.
+ */
+export async function isPropertyEnquirable(id: number): Promise<boolean> {
+  const row = await db.query.properties.findFirst({
+    columns: { id: true },
+    where: and(eq(properties.id, id), ...PUBLIC_CONDITIONS),
+  });
+  return Boolean(row);
+}

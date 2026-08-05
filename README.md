@@ -11,7 +11,7 @@ an admin review queue, so nothing reaches the public site unvetted.
 ## Stack
 
 - **Next.js 16** (App Router, server actions) — one app for the public site and admin
-- **PostgreSQL + Drizzle ORM** — schema in `src/db/schema.ts`
+- **PostgreSQL + Drizzle ORM** — schema in `src/db/schema.ts`, documented in [DATABASE.md](DATABASE.md)
 - **Better-Auth** — email/password + Google; admins are an allowlist (`ADMIN_EMAILS`), hosts are any signed-in user
 - **Leaflet + OpenStreetMap** — host pins an exact location, public pages show an approximate circle. No API key, no billing account
 - **Tailwind CSS v4**
@@ -28,6 +28,8 @@ docker start findmyspace-postgres  # or create it:
 #   -p 5436:5432 postgres:17-alpine
 
 cp .env.example .env   # fill in values (see below)
+# Local dev runs against the Docker container; production uses Neon. Both URLs
+# live in .env with one commented out — see DATABASE.md.
 npm run db:push        # apply schema
 npm run db:seed        # localities + admin user + sample properties
 npm run dev
@@ -62,10 +64,35 @@ policy is aimed at modest traffic. If listing volume grows, point `OSM_TILE_URL`
 at a tile CDN (MapTiler, Stadia, Carto all have free tiers) — it is a one-line
 change in `src/lib/map.ts`.
 
-Google sign-in is separate and genuinely free; OAuth is not billed. Set it up at
-APIs & Services → Credentials → *OAuth client ID* → Web application, with
-redirect URI `{BETTER_AUTH_URL}/api/auth/callback/google`. Without it, hosts
-sign in with email and nothing else changes.
+### Google sign-in setup
+
+Free — OAuth is not billed. Google Cloud console → APIs & Services →
+Credentials → *Create OAuth client ID* → **Web application**:
+
+**Authorised JavaScript origins**
+```
+http://localhost:3000
+https://www.thefindmyspace.com
+```
+
+**Authorised redirect URIs**
+```
+http://localhost:3000/api/auth/callback/google
+https://www.thefindmyspace.com/api/auth/callback/google
+```
+
+Better-Auth builds that callback path from `BETTER_AUTH_URL`, so in production
+`BETTER_AUTH_URL` **must** be `https://www.thefindmyspace.com` exactly — same
+scheme, same `www`. If it disagrees with what Google has registered, sign-in
+fails with `redirect_uri_mismatch`. Set `NEXT_PUBLIC_SITE_URL` to the same
+value.
+
+If the apex `thefindmyspace.com` also serves the app, either redirect it to the
+`www` host at the DNS/hosting layer (simplest) or register the apex origin and
+callback in Google too.
+
+Without these credentials the Google button is hidden, hosts sign in with email,
+and nothing else changes.
 
 ## Scripts
 
@@ -94,7 +121,7 @@ src/
     queries/           # all reads (public + admin), server-only
     actions/           # all mutations (server actions, admin-guarded)
     auth-guard.ts      # getAdminSession / requireAdmin / getUserSession / requireUser
-  db/                  # drizzle schema, client, seed
+  db/                  # drizzle schema, client, seed (see DATABASE.md)
   lib/                 # auth, constants, utils, map + geocoding (`map.ts`)
   config/site.ts       # site name, city, contact
 ```
@@ -147,6 +174,21 @@ From there, `/host/listings/new`:
 The admin sees it at `/admin/submissions` with the precise pin and a Maps link,
 then approves (publishes) or sends it back with a note the host sees on their
 listing. Editing a live listing and resubmitting drops it back into review.
+
+## Account area
+
+The site header shows an avatar menu (My listings / Add a listing / Account
+settings / Sign out) when signed in, and the "List your property" call to action
+when not — so auth state is always visible, including on public pages. The
+mobile sheet mirrors it.
+
+Session state is read **client-side** via `authClient.useSession()` rather than
+in the root layout. Reading it server-side would force every page dynamic,
+including the static legal pages. The trade-off is a brief moment on load where
+the signed-out CTA shows.
+
+`/host/listings` and `/host/account` share `HostShell` (avatar, tabs, sign out).
+The wizard keeps its own stepped shell instead.
 
 ## Legal pages
 

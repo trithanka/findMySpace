@@ -2,6 +2,7 @@
 
 import { db } from "@/db";
 import { enquiries } from "@/db/schema";
+import { isPropertyEnquirable } from "@/server/queries/properties";
 
 export type EnquiryFormState = {
   status: "idle" | "success" | "error";
@@ -23,6 +24,15 @@ export async function createEnquiry(
   }
   if (!/^[+\d][\d\s-]{7,14}$/.test(phone)) {
     return { status: "error", message: "Please enter a valid phone number." };
+  }
+
+  // The id arrives in a hidden field, so it is user input. Only listings that
+  // are actually on the public site may be enquired about.
+  if (!(await isPropertyEnquirable(propertyId))) {
+    return {
+      status: "error",
+      message: "This property is no longer available. Please try another.",
+    };
   }
 
   await db.insert(enquiries).values({

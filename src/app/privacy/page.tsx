@@ -63,13 +63,17 @@ export default function PrivacyPage() {
           This deserves its own section because it is the most sensitive thing an
           owner gives us.
         </p>
+        <p>
+          <strong>What happens depends on the kind of listing</strong>, and you
+          are told which applies before you place the pin.
+        </p>
+        <p>
+          <strong>PGs and rental homes.</strong> Your pinned coordinates and
+          street address are <strong>never published</strong>. They are not shown
+          on your listing page, are not included in the page’s underlying code,
+          and are not given to search engines.
+        </p>
         <List>
-          <li>
-            Your pinned coordinates and street address are{" "}
-            <strong>never published</strong>. They are not shown on your listing
-            page, are not included in the page’s underlying code, and are
-            not given to search engines.
-          </li>
           <li>
             The map a visitor sees shows a shaded circle of roughly 600 metres,
             centred on a point deliberately offset from your real one. It is
@@ -86,8 +90,18 @@ export default function PrivacyPage() {
           </li>
         </List>
         <p>
-          The same applies to the contact phone number on a listing: it stays
-          private, and enquiries reach us first.
+          <strong>Homestays.</strong> Because a guest booking a short stay has to
+          be able to find the door, a homestay listing{" "}
+          <strong>
+            does show the exact pin and the street address you give
+          </strong>
+          , along with the host name. The location step tells you this before you
+          pin, and the address field is labelled as public. If you would rather
+          not publish it, list the property as a rental instead.
+        </p>
+        <p>
+          The contact phone number stays private on every kind of listing —
+          enquiries always reach us first.
         </p>
       </Section>
 

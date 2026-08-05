@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SignOutButton } from "@/components/admin/sign-out-button";
+import { HostShell } from "@/components/host/host-shell";
 import { Badge } from "@/components/ui/badge";
 import { PROPERTY_TYPE_CONFIG } from "@/lib/constants";
 import { hostStepHref, SUBMISSION_STATUS_LABELS } from "@/lib/host-steps";
@@ -27,25 +27,23 @@ export default async function HostListingsPage({
   ]);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
+    <HostShell
+      user={{
+        name: session.user.name,
+        email: session.user.email,
+        image: session.user.image,
+      }}
+    >
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
-            My listings
-          </h1>
-          <p className="mt-1 text-sm text-zinc-500">
-            Signed in as {session.user.email}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/host/listings/new"
-            className="inline-flex min-h-11 items-center rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white transition hover:bg-brand-700"
-          >
-            + New listing
-          </Link>
-          <SignOutButton redirectTo="/host" />
-        </div>
+        <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
+          My listings
+        </h1>
+        <Link
+          href="/host/listings/new"
+          className="inline-flex min-h-11 items-center rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white transition hover:bg-brand-700"
+        >
+          + New listing
+        </Link>
       </div>
 
       {submitted && (
@@ -139,6 +137,6 @@ export default async function HostListingsPage({
           })}
         </ul>
       )}
-    </div>
+    </HostShell>
   );
 }

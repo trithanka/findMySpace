@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Avatar } from "@/components/layout/account-menu";
 import { TYPE_ICONS } from "@/components/ui/icons";
+import { authClient } from "@/lib/auth-client";
 import { siteConfig } from "@/config/site";
 import { PROPERTY_TYPE_CONFIG, PROPERTY_TYPES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -11,6 +13,9 @@ import { cn } from "@/lib/utils";
 export function SiteNav() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  // Same store the header's AccountMenu reads, so the sheet cannot disagree
+  // with it about whether you are signed in.
+  const { data: session } = authClient.useSession();
 
   // Escape to close, and hold the page still while the sheet is open.
   useEffect(() => {
@@ -51,12 +56,6 @@ export function SiteNav() {
             </Link>
           );
         })}
-        <Link
-          href="/host"
-          className="ml-1 rounded-full border border-brand-200 px-3 py-1.5 text-sm font-semibold text-brand-700 transition hover:bg-brand-50"
-        >
-          List your property
-        </Link>
       </nav>
 
       {/* Mobile toggle — three bars that morph into an X */}
@@ -147,13 +146,48 @@ export function SiteNav() {
             );
           })}
 
-          <Link
-            href="/host"
-            onClick={() => setOpen(false)}
-            className="mt-1 flex min-h-12 items-center justify-center rounded-xl border border-brand-200 px-4 text-sm font-semibold text-brand-700"
-          >
-            List your property
-          </Link>
+          {session ? (
+            <>
+              <div className="mt-2 flex items-center gap-3 border-t border-zinc-100 px-3 pb-1 pt-4">
+                <Avatar
+                  image={session.user.image}
+                  name={session.user.name}
+                  email={session.user.email}
+                  className="h-9 w-9 text-sm"
+                />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-zinc-900">
+                    {session.user.name || "Your account"}
+                  </p>
+                  <p className="truncate text-xs text-zinc-500">
+                    {session.user.email}
+                  </p>
+                </div>
+              </div>
+              {[
+                { href: "/host/listings", label: "My listings" },
+                { href: "/host/listings/new", label: "Add a listing" },
+                { href: "/host/account", label: "Account settings" },
+              ].map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className="flex min-h-12 items-center rounded-xl px-3 text-base font-medium text-zinc-800 active:bg-zinc-100"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </>
+          ) : (
+            <Link
+              href="/host"
+              onClick={() => setOpen(false)}
+              className="mt-1 flex min-h-12 items-center justify-center rounded-xl border border-brand-200 px-4 text-sm font-semibold text-brand-700"
+            >
+              List your property
+            </Link>
+          )}
 
           {siteConfig.whatsappNumber && (
             <a

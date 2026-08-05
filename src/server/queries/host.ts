@@ -1,7 +1,7 @@
 import "server-only";
-import { and, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { properties } from "@/db/schema";
+import { account, properties, user } from "@/db/schema";
 
 /** Every listing this host has started, newest first. */
 export async function listHostListings(userId: string) {
@@ -36,3 +36,38 @@ export type HostListing = NonNullable<
 export type HostListingCard = Awaited<
   ReturnType<typeof listHostListings>
 >[number];
+
+/**
+ * Everything the account page shows. The sign-in methods come from the
+ * `account` table — a host may have both a password and a linked Google
+ * account, and it is useful for them to see which.
+ */
+export async function getHostAccount(userId: string) {
+  const [profile, methods, listings] = await Promise.all([
+    db.query.user.findFirst({ where: eq(user.id, userId) }),
+    db
+      .select({ providerId: account.providerId })
+      .from(account)
+      .where(eq(account.userId, userId)),
+    db
+      .select({
+        submissionStatus: properties.submissionStatus,
+        total: count(),
+      })
+      .from(properties)
+      .where(eq(properties.ownerUserId, userId))
+      .groupBy(properties.submissionStatus),
+  ]);
+
+  const counts = { draft: 0, submitted: 0, approved: 0, rejected: 0 };
+  for (const row of listings) counts[row.submissionStatus] = Number(row.total);
+
+  return {
+    profile,
+    providers: [...new Set(methods.map((m) => m.providerId))],
+    counts,
+    totalListings: Object.values(counts).reduce((a, b) => a + b, 0),
+  };
+}
+
+export type HostAccount = Awaited<ReturnType<typeof getHostAccount>>;

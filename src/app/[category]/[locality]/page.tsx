@@ -93,7 +93,7 @@ async function LocalityListings({
         </div>
         <LocalityFilter
           localities={localities}
-          categorySlug={category}
+          basePath={`/${category}`}
           currentLocalitySlug={localitySlug}
         />
       </div>

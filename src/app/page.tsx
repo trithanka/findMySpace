@@ -84,7 +84,7 @@ async function HomeContent() {
           className="pointer-events-none absolute -bottom-56 right-0 h-[28rem] w-[28rem] rounded-full bg-brand-400/10 blur-3xl"
         />
 
-        <div className="relative mx-auto grid max-w-6xl gap-12 px-4 pb-12 pt-12 sm:pb-16 sm:pt-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-10 lg:pb-20 lg:pt-20">
+        <div className="relative mx-auto grid max-w-[1360px] gap-12 px-6 pb-12 pt-12 sm:px-10 sm:pb-16 sm:pt-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-10 lg:px-16 lg:pb-20 lg:pt-20">
           <div className="animate-fade-up text-center lg:text-left">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium text-brand-200 backdrop-blur">
               <span className="relative flex h-1.5 w-1.5">
@@ -186,7 +186,7 @@ async function HomeContent() {
       </section>
 
       {/* Type cards */}
-      <section className="mx-auto max-w-6xl px-4 py-12 sm:py-16">
+      <section className="mx-auto max-w-[1360px] px-6 py-12 sm:px-10 sm:py-16 lg:px-16">
         <div className="grid gap-3 sm:grid-cols-3 sm:gap-5">
           {PROPERTY_TYPES.map((type) => {
             const Icon = TYPE_ICONS[type];
@@ -230,7 +230,7 @@ async function HomeContent() {
 
       {/* Locality tiles */}
       {localityTiles.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 pb-12 sm:pb-16">
+        <section className="mx-auto max-w-[1360px] px-6 pb-12 sm:px-10 sm:pb-16 lg:px-16">
           <SectionHeading
             eyebrow="Neighbourhoods"
             title="Browse by locality"
@@ -245,19 +245,19 @@ async function HomeContent() {
       )}
 
       {/* Latest listings */}
-      <section className="mx-auto max-w-6xl px-4 pb-14 sm:pb-20">
+      <section className="mx-auto max-w-[1360px] px-6 pb-14 sm:px-10 sm:pb-20 lg:px-16">
         <SectionHeading
           eyebrow="Fresh on FindMySpace"
           title="Latest listings"
           subtitle={`Newly added across ${siteConfig.city}`}
-          action={{ label: "View all", href: "/rent-in-guwahati" }}
+          action={{ label: "View all", href: "/listings" }}
         />
         <PropertyGrid properties={featured} />
       </section>
 
       {/* How it works */}
       <section className="border-y border-zinc-200 bg-white">
-        <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
+        <div className="mx-auto max-w-[1360px] px-6 py-14 sm:px-10 sm:py-20 lg:px-16">
           <div className="mx-auto max-w-lg text-center">
             <p className="mb-1.5 text-xs font-semibold uppercase tracking-widest text-brand-600">
               How it works
@@ -269,6 +269,13 @@ async function HomeContent() {
               We filter out the noise so you only see places worth visiting —
               and we never show your number to a dozen brokers.
             </p>
+            <Link
+              href="/why"
+              className="mt-4 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-brand-700 hover:underline"
+            >
+              How we verify every listing
+              <span aria-hidden="true">→</span>
+            </Link>
           </div>
 
           <ol className="mt-10 grid gap-5 sm:grid-cols-3 sm:gap-6">
@@ -296,7 +303,7 @@ async function HomeContent() {
       </section>
 
       {/* Closing CTA */}
-      <section className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
+      <section className="mx-auto max-w-[1360px] px-6 py-14 sm:px-10 sm:py-20 lg:px-16">
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 px-6 py-10 text-center sm:px-12 sm:py-14">
           <div
             aria-hidden="true"

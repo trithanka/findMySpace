@@ -4,7 +4,8 @@ import { useState } from "react";
 import { LocationPicker } from "@/components/host/location-picker";
 import { StepForm } from "@/components/host/step-form";
 import { Input, Label, Select } from "@/components/ui/form";
-import { PROPERTY_TYPE_CONFIG, PROPERTY_TYPES } from "@/lib/constants";
+import { PROPERTY_TYPE_CONFIG, PROPERTY_TYPES, type PropertyType } from "@/lib/constants";
+import { disclosureFor } from "@/lib/disclosure";
 import { cn } from "@/lib/utils";
 import type { ActionResult } from "@/server/actions/host";
 import type { Locality } from "@/server/queries/localities";
@@ -32,7 +33,12 @@ export function PlaceStepForm({
   backHref,
   defaults,
 }: Props) {
-  const [type, setType] = useState(defaults?.type ?? PROPERTY_TYPES[0]);
+  const [type, setType] = useState<PropertyType>(
+    (defaults?.type as PropertyType) ?? PROPERTY_TYPES[0],
+  );
+  // The host is choosing the type on this very screen, so the warning has to
+  // update as they click — it cannot be decided on the server.
+  const showsExactLocation = disclosureFor(type).exactLocation;
 
   return (
     <StepForm action={action} submitLabel={submitLabel} backHref={backHref}>
@@ -105,14 +111,18 @@ export function PlaceStepForm({
         <h2 className="text-sm font-medium text-zinc-700">
           Pin the exact location
         </h2>
-        <p className="mb-3 mt-1 text-xs text-zinc-500">
-          Accuracy here is what lets us find you for the visit — it is never
-          published.
+        <p
+          className={`mb-3 mt-1 text-xs ${showsExactLocation ? "text-amber-700" : "text-zinc-500"}`}
+        >
+          {showsExactLocation
+            ? "Homestays show this pin and address publicly, so guests can find you. Place it accurately."
+            : "Accuracy here is what lets us find you for the visit — it is never published."}
         </p>
         <LocationPicker
           defaultLat={defaults?.latitude}
           defaultLng={defaults?.longitude}
           defaultAddress={defaults?.addressLine}
+          addressIsPublic={showsExactLocation}
         />
       </div>
     </StepForm>

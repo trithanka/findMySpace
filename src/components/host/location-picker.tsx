@@ -18,6 +18,8 @@ type Props = {
   defaultLat?: number | null;
   defaultLng?: number | null;
   defaultAddress?: string | null;
+  /** Homestays publish the pin and address; PGs and rentals do not. */
+  addressIsPublic?: boolean;
 };
 
 const ZOOM_CITY = 12;
@@ -39,6 +41,7 @@ export function LocationPicker({
   defaultLat,
   defaultLng,
   defaultAddress,
+  addressIsPublic = false,
 }: Props) {
   const mapNode = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
@@ -303,7 +306,9 @@ export function LocationPicker({
       </div>
 
       <div>
-        <Label htmlFor="addressLine">Full address (private)</Label>
+        <Label htmlFor="addressLine">
+          Full address {addressIsPublic ? "(shown to guests)" : "(private)"}
+        </Label>
         <Input
           id="addressLine"
           name="addressLine"
@@ -311,9 +316,12 @@ export function LocationPicker({
           onChange={(event) => setAddress(event.target.value)}
           placeholder="House / flat number, street, area"
         />
-        <p className="mt-1 text-xs text-zinc-500">
-          Only we see this. Public pages show the locality and a rough map
-          circle, never your exact address.
+        <p
+          className={`mt-1 text-xs ${addressIsPublic ? "text-amber-700" : "text-zinc-500"}`}
+        >
+          {addressIsPublic
+            ? "This appears on your public listing so guests can find the place."
+            : "Only we see this. Public pages show the locality and a rough map circle, never your exact address."}
         </p>
       </div>
 

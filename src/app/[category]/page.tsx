@@ -74,7 +74,7 @@ async function CategoryContent({
             available
           </p>
         </div>
-        <LocalityFilter localities={localities} categorySlug={category} />
+        <LocalityFilter localities={localities} basePath={`/${category}`} />
       </div>
       <PropertyGrid properties={properties} />
     </div>

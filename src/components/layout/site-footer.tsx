@@ -6,7 +6,7 @@ import { PROPERTY_TYPE_CONFIG, PROPERTY_TYPES } from "@/lib/constants";
 export function SiteFooter() {
   return (
     <footer className="border-t border-zinc-200 bg-white">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex max-w-[1360px] flex-col gap-6 px-6 py-10 sm:px-10 sm:flex-row sm:items-center sm:justify-between lg:px-16">
         <div>
           <Link href="/" className="inline-block">
             <Image
@@ -32,6 +32,12 @@ export function SiteFooter() {
             </Link>
           ))}
           <Link
+            href="/why"
+            className="inline-flex min-h-11 items-center px-2 hover:text-brand-700"
+          >
+            Why {siteConfig.name}
+          </Link>
+          <Link
             href="/host"
             className="inline-flex min-h-11 items-center px-2 font-semibold text-brand-700 hover:underline"
           >
@@ -40,7 +46,7 @@ export function SiteFooter() {
         </nav>
       </div>
       <div className="border-t border-zinc-100 py-4">
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-4 text-xs text-zinc-400 sm:flex-row sm:justify-between">
+        <div className="mx-auto flex max-w-[1360px] flex-col items-center gap-2 px-6 text-xs text-zinc-400 sm:px-10 sm:flex-row sm:justify-between lg:px-16">
           <p>
             © {new Date().getFullYear()} {siteConfig.name}, {siteConfig.city}
           </p>
