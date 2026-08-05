@@ -4,9 +4,20 @@ import { db } from "@/db";
 import { properties } from "@/db/schema";
 import type { PropertyType } from "@/lib/constants";
 
+/**
+ * Every public query filters on both axes. `status` is the admin's publication
+ * state; `submissionStatus` keeps unreviewed host submissions off the site. It
+ * is an allowlist on purpose — adding a new pipeline state can never
+ * accidentally publish rows the way an exclusion filter would.
+ */
+const PUBLIC_CONDITIONS = [
+  eq(properties.status, "available"),
+  eq(properties.submissionStatus, "approved"),
+];
+
 export async function getFeaturedProperties(limit = 6) {
   return db.query.properties.findMany({
-    where: eq(properties.status, "available"),
+    where: and(...PUBLIC_CONDITIONS),
     orderBy: desc(properties.createdAt),
     limit,
     with: {
@@ -20,7 +31,7 @@ export async function getPublicProperties(filter: {
   type?: PropertyType;
   localityId?: number;
 }) {
-  const conditions = [eq(properties.status, "available")];
+  const conditions = [...PUBLIC_CONDITIONS];
   if (filter.type) conditions.push(eq(properties.type, filter.type));
   if (filter.localityId)
     conditions.push(eq(properties.localityId, filter.localityId));
@@ -37,7 +48,7 @@ export async function getPublicProperties(filter: {
 
 export async function getPropertyBySlug(slug: string) {
   return db.query.properties.findFirst({
-    where: and(eq(properties.slug, slug), eq(properties.status, "available")),
+    where: and(eq(properties.slug, slug), ...PUBLIC_CONDITIONS),
     with: {
       locality: true,
       images: { orderBy: (images, { asc }) => asc(images.sortOrder) },
@@ -52,7 +63,7 @@ export async function getPropertyCountsByType(): Promise<
   const rows = await db
     .select({ type: properties.type, total: count() })
     .from(properties)
-    .where(eq(properties.status, "available"))
+    .where(and(...PUBLIC_CONDITIONS))
     .groupBy(properties.type);
 
   const counts = { pg: 0, rent: 0, homestay: 0 };

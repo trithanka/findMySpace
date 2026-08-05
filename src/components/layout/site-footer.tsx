@@ -31,10 +31,28 @@ export function SiteFooter() {
               {PROPERTY_TYPE_CONFIG[type].plural}
             </Link>
           ))}
+          <Link
+            href="/host"
+            className="inline-flex min-h-11 items-center px-2 font-semibold text-brand-700 hover:underline"
+          >
+            List your property
+          </Link>
         </nav>
       </div>
-      <div className="border-t border-zinc-100 py-4 text-center text-xs text-zinc-400">
-        © {new Date().getFullYear()} {siteConfig.name}, {siteConfig.city}
+      <div className="border-t border-zinc-100 py-4">
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-4 text-xs text-zinc-400 sm:flex-row sm:justify-between">
+          <p>
+            © {new Date().getFullYear()} {siteConfig.name}, {siteConfig.city}
+          </p>
+          <nav className="flex items-center gap-4">
+            <Link href="/privacy" className="hover:text-zinc-600">
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="hover:text-zinc-600">
+              Terms &amp; Conditions
+            </Link>
+          </nav>
+        </div>
       </div>
     </footer>
   );

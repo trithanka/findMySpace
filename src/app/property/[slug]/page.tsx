@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { ApproximateMap } from "@/components/property/approximate-map";
 import { EnquiryForm } from "@/components/property/enquiry-form";
 import { PropertyGallery } from "@/components/property/property-gallery";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,7 @@ import {
   PROPERTY_TYPE_CONFIG,
 } from "@/lib/constants";
 import { formatPrice, propertyCode, whatsappEnquiryUrl } from "@/lib/utils";
+import { approximateLocation } from "@/server/approximate-location";
 import { getPropertyBySlug } from "@/server/queries/properties";
 
 export const dynamic = "force-dynamic";
@@ -49,6 +51,13 @@ export default async function PropertyPage({
   if (!property) notFound();
 
   const code = propertyCode(property.id);
+
+  // Blurred here, on the server: the exact pin is private and must not be
+  // serialised into the page the browser receives.
+  const approximate =
+    property.latitude !== null && property.longitude !== null
+      ? approximateLocation(property.latitude, property.longitude, property.id)
+      : null;
 
   const facts: [string, string][] = [
     ["Type", PROPERTY_TYPE_CONFIG[property.type].label],
@@ -118,6 +127,13 @@ export default async function PropertyPage({
               {property.description}
             </p>
           </section>
+
+          {approximate && (
+            <ApproximateMap
+              center={approximate}
+              localityName={property.locality.name}
+            />
+          )}
 
           <p className="mt-8 rounded-xl bg-zinc-50 p-4 text-sm text-zinc-500">
             Exact address is shared after you enquire — we verify every visit

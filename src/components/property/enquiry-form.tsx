@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 import { Input, Label, SubmitButton, Textarea } from "@/components/ui/form";
 import {
   createEnquiry,
@@ -66,6 +67,20 @@ export function EnquiryForm({ propertyId }: { propertyId: number }) {
       <SubmitButton pendingText="Sending…" className="w-full">
         Request a callback
       </SubmitButton>
+      {/* Consent has to be given where the data is actually collected, not
+          buried in a footer link — this is what the DPDP Act asks for. */}
+      <p className="text-center text-xs leading-relaxed text-zinc-400">
+        By requesting a callback you agree to our{" "}
+        <Link href="/terms" className="underline hover:text-zinc-600">
+          Terms
+        </Link>{" "}
+        and consent to us contacting you about this property, as described in
+        our{" "}
+        <Link href="/privacy" className="underline hover:text-zinc-600">
+          Privacy Policy
+        </Link>
+        .
+      </p>
     </form>
   );
 }

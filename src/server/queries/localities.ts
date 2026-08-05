@@ -1,5 +1,5 @@
 import "server-only";
-import { asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { localities, properties } from "@/db/schema";
 
@@ -18,7 +18,7 @@ export async function getLocalitiesWithCounts() {
       id: localities.id,
       name: localities.name,
       slug: localities.slug,
-      propertyCount: sql<number>`count(${properties.id}) filter (where ${properties.status} = 'available')`,
+      propertyCount: sql<number>`count(${properties.id}) filter (where ${properties.status} = 'available' and ${properties.submissionStatus} = 'approved')`,
     })
     .from(localities)
     .leftJoin(properties, eq(properties.localityId, localities.id))
@@ -32,7 +32,10 @@ export async function getLocalitiesWithCounts() {
  */
 export async function getLocalityTiles(limit = 6) {
   const rows = await db.query.properties.findMany({
-    where: eq(properties.status, "available"),
+    where: and(
+      eq(properties.status, "available"),
+      eq(properties.submissionStatus, "approved"),
+    ),
     with: {
       locality: true,
       images: { orderBy: (images, { asc }) => asc(images.sortOrder), limit: 1 },

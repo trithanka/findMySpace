@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import {
   boolean,
+  doublePrecision,
   integer,
   pgEnum,
   pgTable,
@@ -27,6 +28,21 @@ export const furnishing = pgEnum("furnishing", [
   "unfurnished",
   "semi_furnished",
   "fully_furnished",
+]);
+
+/**
+ * Where a listing sits in the host-submission pipeline. Deliberately a separate
+ * axis from `propertyStatus`: that one is the publication state the admin
+ * controls (available / occupied / hidden), this one is who has vetted the row.
+ * Public queries must require `approved` — rows the admin creates default to it,
+ * so nothing existing changes, while host drafts start at `draft` and can never
+ * reach the public site until a human moves them.
+ */
+export const submissionStatus = pgEnum("submission_status", [
+  "draft",
+  "submitted",
+  "approved",
+  "rejected",
 ]);
 
 export const localities = pgTable("localities", {
@@ -59,6 +75,29 @@ export const properties = pgTable("properties", {
   ownerName: text("owner_name"),
   ownerPhone: text("owner_phone"),
   status: propertyStatus("status").notNull().default("available"),
+
+  // ---- Exact location (private) ----
+  // Hosts pin the precise spot so we can verify and visit it; the public page
+  // only ever renders an approximate circle derived from these. Kept as
+  // doublePrecision rather than numeric — drizzle hands numeric back as strings,
+  // which the map component would have to undo.
+  latitude: doublePrecision("latitude"),
+  longitude: doublePrecision("longitude"),
+  // Full street address as the host typed/picked it. Private, like ownerPhone.
+  addressLine: text("address_line"),
+
+  // ---- Host submission pipeline ----
+  // Null for admin-created listings; set when a host owns the row.
+  ownerUserId: text("owner_user_id").references(() => user.id, {
+    onDelete: "set null",
+  }),
+  submissionStatus: submissionStatus("submission_status")
+    .notNull()
+    .default("approved"),
+  submittedAt: timestamp("submitted_at"),
+  // Shown back to the host when we reject, so they know what to fix.
+  reviewNote: text("review_note"),
+
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -92,6 +131,10 @@ export const propertiesRelations = relations(properties, ({ one, many }) => ({
   locality: one(localities, {
     fields: [properties.localityId],
     references: [localities.id],
+  }),
+  owner: one(user, {
+    fields: [properties.ownerUserId],
+    references: [user.id],
   }),
   images: many(propertyImages),
   enquiries: many(enquiries),

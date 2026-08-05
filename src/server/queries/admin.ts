@@ -1,11 +1,17 @@
 import "server-only";
-import { count, desc, eq, gte, isNull } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { enquiries, properties, propertyImages } from "@/db/schema";
 import type { PropertyType } from "@/lib/constants";
 
+/**
+ * The properties the admin manages day to day. Host submissions still in the
+ * pipeline live on the review queue instead, so this deliberately excludes
+ * anything not yet approved.
+ */
 export async function listAllProperties() {
   return db.query.properties.findMany({
+    where: eq(properties.submissionStatus, "approved"),
     orderBy: desc(properties.createdAt),
     with: {
       locality: true,
@@ -58,11 +64,17 @@ export async function getAdminStats() {
       db
         .select({ status: properties.status, total: count() })
         .from(properties)
+        .where(eq(properties.submissionStatus, "approved"))
         .groupBy(properties.status),
       db
         .select({ type: properties.type, total: count() })
         .from(properties)
-        .where(eq(properties.status, "available"))
+        .where(
+          and(
+            eq(properties.status, "available"),
+            eq(properties.submissionStatus, "approved"),
+          ),
+        )
         .groupBy(properties.type),
       db.select({ total: count() }).from(enquiries),
       db
@@ -76,7 +88,12 @@ export async function getAdminStats() {
           propertyImages,
           eq(propertyImages.propertyId, properties.id),
         )
-        .where(isNull(propertyImages.id)),
+        .where(
+          and(
+            isNull(propertyImages.id),
+            eq(properties.submissionStatus, "approved"),
+          ),
+        ),
     ]);
 
   const status = { available: 0, occupied: 0, hidden: 0 };
@@ -96,6 +113,39 @@ export async function getAdminStats() {
     missingPhotos: Number(withoutPhotos[0]?.total ?? 0),
   };
 }
+
+
+/** Host listings waiting on a decision, oldest first — a queue, not a feed. */
+export async function listSubmissions() {
+  return db.query.properties.findMany({
+    where: eq(properties.submissionStatus, "submitted"),
+    orderBy: asc(properties.submittedAt),
+    with: {
+      locality: true,
+      owner: true,
+      images: { orderBy: (images, { asc }) => asc(images.sortOrder) },
+    },
+  });
+}
+
+/** Listings we have already sent back, so they do not silently disappear. */
+export async function listRejectedSubmissions() {
+  return db.query.properties.findMany({
+    where: eq(properties.submissionStatus, "rejected"),
+    orderBy: desc(properties.updatedAt),
+    with: { locality: true, owner: true },
+  });
+}
+
+export async function countPendingSubmissions() {
+  const [row] = await db
+    .select({ total: count() })
+    .from(properties)
+    .where(eq(properties.submissionStatus, "submitted"));
+  return Number(row?.total ?? 0);
+}
+
+export type AdminSubmission = Awaited<ReturnType<typeof listSubmissions>>[number];
 
 export type AdminStats = Awaited<ReturnType<typeof getAdminStats>>;
 export type AdminProperty = Awaited<

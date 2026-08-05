@@ -40,9 +40,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
+  const legalUrls = ["/privacy", "/terms"].map((path) => ({
+    url: `${siteConfig.url}${path}`,
+    changeFrequency: "yearly" as const,
+    priority: 0.3,
+  }));
+
   return [
     { url: siteConfig.url, changeFrequency: "daily", priority: 1 },
     ...categoryUrls,
+    ...legalUrls,
     ...localityUrls,
     ...propertyUrls,
   ];

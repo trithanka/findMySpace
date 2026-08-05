@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { SignOutButton } from "@/components/admin/sign-out-button";
 import { getAdminSession } from "@/server/auth-guard";
+import { countPendingSubmissions } from "@/server/queries/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,8 @@ export default async function AdminLayout({
   // The login page lives under this layout — show it without the admin shell.
   if (!session) return <>{children}</>;
 
+  const pendingCount = await countPendingSubmissions();
+
   return (
     <div className="mx-auto max-w-6xl px-4 pb-16">
       <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
@@ -22,7 +25,7 @@ export default async function AdminLayout({
           <span className="hidden rounded-lg bg-zinc-900 px-2 py-1 text-xs font-bold uppercase tracking-wide text-white sm:inline">
             Admin
           </span>
-          <AdminNav />
+          <AdminNav pendingCount={pendingCount} />
         </div>
         <div className="flex items-center gap-3 border-t border-zinc-100 pt-3 sm:border-0 sm:pt-0">
           <Link

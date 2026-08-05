@@ -51,6 +51,12 @@ export function SiteNav() {
             </Link>
           );
         })}
+        <Link
+          href="/host"
+          className="ml-1 rounded-full border border-brand-200 px-3 py-1.5 text-sm font-semibold text-brand-700 transition hover:bg-brand-50"
+        >
+          List your property
+        </Link>
       </nav>
 
       {/* Mobile toggle — three bars that morph into an X */}
@@ -140,6 +146,14 @@ export function SiteNav() {
               </Link>
             );
           })}
+
+          <Link
+            href="/host"
+            onClick={() => setOpen(false)}
+            className="mt-1 flex min-h-12 items-center justify-center rounded-xl border border-brand-200 px-4 text-sm font-semibold text-brand-700"
+          >
+            List your property
+          </Link>
 
           {siteConfig.whatsappNumber && (
             <a

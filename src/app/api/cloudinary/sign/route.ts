@@ -1,14 +1,17 @@
 import { v2 as cloudinary } from "cloudinary";
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/server/auth-guard";
+import { getUserSession } from "@/server/auth-guard";
 
 /**
  * Hands the browser a short-lived signature so it can upload straight to
  * Cloudinary. Image bytes never touch our server, which is what keeps uploads
  * under Vercel's 4.5MB request-body cap. The API secret stays here.
+ *
+ * Any signed-in user, not just admins — hosts upload their own listing photos
+ * through the same path.
  */
 export async function POST() {
-  const session = await getAdminSession();
+  const session = await getUserSession();
   if (!session) {
     return NextResponse.json({ error: "Not authorised" }, { status: 401 });
   }
